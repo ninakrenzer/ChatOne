@@ -13,8 +13,9 @@ app.set("view engine", "ejs");
 const server = http.createServer(app);
 const io = socketio(server).listen(server);
 
+client.connect();
+
 async function sendMessage(socket) {
-    await client.connect();
     client.lRange("messages", "0", "-1", (err, data) => {
         data.map(x => {
             const usernameMessage = x.split(":");
@@ -32,9 +33,7 @@ async function sendMessage(socket) {
 io.on("connection", socket => {
     sendMessage(socket);
     socket.on("message", ({message, from}) => {
-        client.rpush("messages", `${from};${message}`);
-
-        
+        client.rPush("messages", `${from}:${message}`);
 
         io.emit("message", { from, message});
     });
